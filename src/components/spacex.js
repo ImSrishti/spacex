@@ -12,6 +12,8 @@ import {
   MenuItem,
   Select,
   TablePagination,
+  // CircularProgress,
+  // Box,
 } from '@mui/material';
 
 export default function BasicTable() {
@@ -19,9 +21,16 @@ export default function BasicTable() {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [selectedLaunchType, setLaunchType] = useState('launches');
+  const [selectedTimeDuration, setTimeDuration] = useState('all');
+  const [errorMessage, setErrorMessage] = useState('');
 
-  const fetchApi = (param, filter) => {
-    fetch('https://api.spacexdata.com/v3/' + param)
+  useEffect(() => {
+    fetchApi();
+  }, []);
+
+  const fetchApi = (param = '', filter) => {
+    setErrorMessage('');
+    fetch('https://api.spacexdata.com/v3/launches/' + param)
       .then((response) => response.json())
       .then((result) => {
         let tempData = result.map((spacex) => {
@@ -46,12 +55,40 @@ export default function BasicTable() {
         }
         setTableData(tempData);
       })
-      .catch((error) => console.log('error', error));
+      .catch((error) => {
+        console.log('error', error);
+        setErrorMessage('No result Found for specified filter');
+        setTableData('');
+      });
   };
 
-  useEffect(() => {
-    fetchApi('launches');
-  }, []);
+  const handleChangePast = (e) => {
+    setTimeDuration(e.target.value);
+    // Get the current date
+    const currentDate = new Date();
+
+    // Calculate the date 6 months ago
+    const pastSixMonthsDate = new Date();
+    pastSixMonthsDate.setMonth(currentDate.getMonth() - 6);
+
+    // Format the dates as 'YYYY-MM-DD'
+    const startDateString = formatDate(pastSixMonthsDate);
+    const endDateString = formatDate(currentDate);
+    if (e.target.value === 'past') {
+      const params = `past/start=${startDateString}&end=${endDateString}`;
+      fetchApi(params);
+    } else {
+      fetchApi();
+    }
+  };
+
+  const formatDate = (date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are zero-based
+    const day = String(date.getDate()).padStart(2, '0');
+
+    return `${year}-${month}-${day}`;
+  };
 
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
@@ -65,14 +102,13 @@ export default function BasicTable() {
   const handleChangeLaunch = (e) => {
     setLaunchType(e.target.value);
     if (e.target.value === 'upcoming') {
-      fetchApi('launches/upcoming');
+      fetchApi('upcoming');
     } else if (e.target.value === 'launches') {
-      fetchApi('launches');
+      fetchApi();
     } else {
-      fetchApi('launches', e.target.value);
+      fetchApi('', e.target.value);
     }
   };
-
   return (
     <>
       <FormControl
@@ -86,12 +122,11 @@ export default function BasicTable() {
         <Select
           labelId="demo-simple-select-label"
           id="demo-simple-select"
-          value={10}
-          // onChange={handleChange}
+          value={selectedTimeDuration}
+          onChange={handleChangePast}
         >
-          <MenuItem value={10}>Ten</MenuItem>
-          <MenuItem value={20}>Twenty</MenuItem>
-          <MenuItem value={30}>Thirty</MenuItem>
+          <MenuItem value="all">All</MenuItem>
+          <MenuItem value="past">Last 6 months</MenuItem>
         </Select>
         <Select
           labelId="demo-simple-select-label"
@@ -111,7 +146,7 @@ export default function BasicTable() {
           aria-label="simple table"
         >
           <TableHead sx={{ backgroundColor: 'gainsboro' }}>
-            <TableRow>
+            <TableRow key="row_name">
               <TableCell>No</TableCell>
               <TableCell align="left">Launched UTC</TableCell>
               <TableCell align="left">Location</TableCell>
@@ -123,30 +158,38 @@ export default function BasicTable() {
           </TableHead>
 
           <TableBody>
-            {tableData
-              .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-              .map((row) => (
-                <TableRow
-                  key={row.name}
-                  sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-                >
-                  <TableCell component="th" scope="row">
-                    {row.no}
-                  </TableCell>
-                  <TableCell align="left">{row.launched}</TableCell>
-                  <TableCell align="left">{row.location}</TableCell>
-                  <TableCell align="left">{row.mission}</TableCell>
-                  <TableCell align="left">{row.orbit}</TableCell>
-                  <TableCell align="left">
-                    {row.launchStatus ? (
-                      <Chip label="success" color="success" />
-                    ) : (
-                      <Chip label="failed" color="error" />
-                    )}
-                  </TableCell>
-                  <TableCell align="left">{row.rocket}</TableCell>
-                </TableRow>
-              ))}
+            {tableData ? (
+              tableData
+                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                .map((row) => (
+                  <TableRow
+                    key={row.name}
+                    sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+                  >
+                    <TableCell component="th" scope="row">
+                      {row.no}
+                    </TableCell>
+                    <TableCell align="left">{row.launched}</TableCell>
+                    <TableCell align="left">{row.location}</TableCell>
+                    <TableCell align="left">{row.mission}</TableCell>
+                    <TableCell align="left">{row.orbit}</TableCell>
+                    <TableCell align="left">
+                      {row.launchStatus ? (
+                        <Chip label="success" color="success" />
+                      ) : (
+                        <Chip label="failed" color="error" />
+                      )}
+                    </TableCell>
+                    <TableCell align="left">{row.rocket}</TableCell>
+                  </TableRow>
+                ))
+            ) : (
+              <TableRow>
+                <TableCell align="center" colSpan={7}>
+                  {errorMessage}
+                </TableCell>
+              </TableRow>
+            )}
           </TableBody>
         </Table>
       </TableContainer>
