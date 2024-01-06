@@ -113,23 +113,23 @@ export default function BasicModal({ selectedLaunch, openModal }) {
                     </TableCell>
                   </TableRow>
                   <TableRow>
-                    <TableCell align="left">Mission name</TableCell>
+                    <TableCell align="left">Rocket Type</TableCell>
                     <TableCell align="left">{modalData.rocket_type}</TableCell>
                   </TableRow>{' '}
                   <TableRow>
-                    <TableCell align="left">Mission name</TableCell>
+                    <TableCell align="left">Rocket Name</TableCell>
                     <TableCell align="left">{modalData.rocket_name}</TableCell>
                   </TableRow>{' '}
                   <TableRow>
-                    <TableCell align="left">Mission name</TableCell>
+                    <TableCell align="left">Manufacturer</TableCell>
                     <TableCell align="left">{modalData.manufacturer}</TableCell>
                   </TableRow>{' '}
                   <TableRow>
-                    <TableCell align="left">Mission name</TableCell>
+                    <TableCell align="left">Nationality</TableCell>
                     <TableCell align="left">{modalData.nationality}</TableCell>
                   </TableRow>{' '}
                   <TableRow>
-                    <TableCell align="left">Mission name</TableCell>
+                    <TableCell align="left">Launch Date</TableCell>
                     <TableCell align="left">
                       {modalData.launch_date_local}
                     </TableCell>
@@ -151,5 +151,3 @@ export default function BasicModal({ selectedLaunch, openModal }) {
     </Modal>
   );
 }
-
-//https://api.spacexdata.com/v3/launches/{{flight_number}}
