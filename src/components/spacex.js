@@ -15,6 +15,7 @@ import {
   CircularProgress,
   Box,
 } from '@mui/material';
+import BasicModal from './modal';
 
 export default function BasicTable() {
   const [tableData, setTableData] = useState([]);
@@ -24,6 +25,9 @@ export default function BasicTable() {
   const [selectedTimeDuration, setTimeDuration] = useState('all');
   const [errorMessage, setErrorMessage] = useState('');
   const [loading, setLoader] = useState(false);
+  const [selectedLaunch, setSelectedLaunch] = useState('');
+  const [openModal, setOpenModal] = useState(false);
+
   useEffect(() => {
     fetchApi();
   }, []);
@@ -43,6 +47,7 @@ export default function BasicTable() {
             orbit: spacex?.rocket.second_stage.payloads[0].orbit,
             launchStatus: spacex?.launch_success,
             rocket: spacex?.rocket.rocket_name,
+            flight_number: spacex?.flight_number,
           };
         });
         if (filter === 'successful') {
@@ -177,6 +182,10 @@ export default function BasicTable() {
                   <TableRow
                     key={row.name}
                     sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+                    onClick={() => {
+                      setSelectedLaunch(row.flight_number);
+                      setOpenModal(true);
+                    }}
                   >
                     <TableCell component="th" scope="row">
                       {row.no}
@@ -215,6 +224,9 @@ export default function BasicTable() {
         onPageChange={handleChangePage}
         onRowsPerPageChange={handleChangeRowsPerPage}
       />
+      {selectedLaunch && (
+        <BasicModal selectedLaunch={selectedLaunch} openModal={openModal} />
+      )}
     </>
   );
 }
