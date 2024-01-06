@@ -42,6 +42,7 @@ export default function BasicTable() {
       })
       .catch((error) => console.log('error', error));
   }, []);
+
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
   };
@@ -52,7 +53,7 @@ export default function BasicTable() {
   };
   return (
     <>
-      {/* <FormControl
+      <FormControl
         sx={{
           display: 'flex',
           flexDirection: 'row',
@@ -80,7 +81,7 @@ export default function BasicTable() {
           <MenuItem value={20}>Twenty</MenuItem>
           <MenuItem value={30}>Thirty</MenuItem>
         </Select>
-      </FormControl> */}
+      </FormControl>
       <TableContainer component={Paper}>
         <Table
           sx={{ minWidth: 650, borderRadius: 3 }}
@@ -131,7 +132,7 @@ export default function BasicTable() {
         sx={{ marginTop: 1, marginLeft: 'auto' }}
         component="div"
         count={tableData.length}
-        rowsPerPage={10}
+        rowsPerPage={rowsPerPage}
         page={page}
         onPageChange={handleChangePage}
         onRowsPerPageChange={handleChangeRowsPerPage}
