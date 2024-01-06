@@ -16,18 +16,15 @@ import {
 
 export default function BasicTable() {
   const [tableData, setTableData] = useState([]);
-  const [page, setPage] = React.useState(0);
-  const [rowsPerPage, setRowsPerPage] = React.useState(10);
-  useEffect(() => {
-    var requestOptions = {
-      method: 'GET',
-      redirect: 'follow',
-    };
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [selectedLaunchType, setLaunchType] = useState('launches');
 
-    fetch('https://api.spacexdata.com/v3/launches', requestOptions)
+  const fetchApi = (param, filter) => {
+    fetch('https://api.spacexdata.com/v3/' + param)
       .then((response) => response.json())
       .then((result) => {
-        const tempData = result.map((spacex) => {
+        let tempData = result.map((spacex) => {
           return {
             no: spacex?.flight_number,
             launched: spacex?.launch_date_local,
@@ -38,9 +35,22 @@ export default function BasicTable() {
             rocket: spacex?.rocket.rocket_name,
           };
         });
+        if (filter === 'successful') {
+          tempData = tempData.filter((spacex) => {
+            return spacex?.launchStatus;
+          });
+        } else if (filter === 'failed') {
+          tempData = tempData.filter((spacex) => {
+            return !spacex?.launchStatus;
+          });
+        }
         setTableData(tempData);
       })
       .catch((error) => console.log('error', error));
+  };
+
+  useEffect(() => {
+    fetchApi('launches');
   }, []);
 
   const handleChangePage = (event, newPage) => {
@@ -51,6 +61,18 @@ export default function BasicTable() {
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
   };
+
+  const handleChangeLaunch = (e) => {
+    setLaunchType(e.target.value);
+    if (e.target.value === 'upcoming') {
+      fetchApi('launches/upcoming');
+    } else if (e.target.value === 'launches') {
+      fetchApi('launches');
+    } else {
+      fetchApi('launches', e.target.value);
+    }
+  };
+
   return (
     <>
       <FormControl
@@ -74,12 +96,13 @@ export default function BasicTable() {
         <Select
           labelId="demo-simple-select-label"
           id="demo-simple-select"
-          value={10}
-          // onChange={handleChange}
+          onChange={handleChangeLaunch}
+          value={selectedLaunchType}
         >
-          <MenuItem value={10}>Ten</MenuItem>
-          <MenuItem value={20}>Twenty</MenuItem>
-          <MenuItem value={30}>Thirty</MenuItem>
+          <MenuItem value="launches">All Launches</MenuItem>
+          <MenuItem value="upcoming">Upcoming Launches</MenuItem>
+          <MenuItem value="successful">Successful Launches</MenuItem>
+          <MenuItem value="failed">Failed Launches</MenuItem>
         </Select>
       </FormControl>
       <TableContainer component={Paper}>
@@ -142,3 +165,5 @@ export default function BasicTable() {
 }
 
 //pagination https://www.youtube.com/watch?v=wAGIOCqS8tk
+
+//API Docs : https://docs.spacexdata.com/?version=latest#5fc4c846-c373-43df-a10a-e9faf80a8b0a
