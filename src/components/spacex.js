@@ -12,8 +12,8 @@ import {
   MenuItem,
   Select,
   TablePagination,
-  // CircularProgress,
-  // Box,
+  CircularProgress,
+  Box,
 } from '@mui/material';
 
 export default function BasicTable() {
@@ -23,12 +23,13 @@ export default function BasicTable() {
   const [selectedLaunchType, setLaunchType] = useState('launches');
   const [selectedTimeDuration, setTimeDuration] = useState('all');
   const [errorMessage, setErrorMessage] = useState('');
-
+  const [loading, setLoader] = useState(false);
   useEffect(() => {
     fetchApi();
   }, []);
 
   const fetchApi = (param = '', filter) => {
+    setLoader(true);
     setErrorMessage('');
     fetch('https://api.spacexdata.com/v3/launches/' + param)
       .then((response) => response.json())
@@ -54,15 +55,18 @@ export default function BasicTable() {
           });
         }
         setTableData(tempData);
+        setLoader(false);
       })
       .catch((error) => {
         console.log('error', error);
         setErrorMessage('No result Found for specified filter');
         setTableData('');
+        setLoader(false);
       });
   };
 
   const handleChangePast = (e) => {
+    setTableData('');
     setTimeDuration(e.target.value);
     // Get the current date
     const currentDate = new Date();
@@ -101,6 +105,7 @@ export default function BasicTable() {
 
   const handleChangeLaunch = (e) => {
     setLaunchType(e.target.value);
+    setTableData('');
     if (e.target.value === 'upcoming') {
       fetchApi('upcoming');
     } else if (e.target.value === 'launches') {
@@ -158,7 +163,14 @@ export default function BasicTable() {
           </TableHead>
 
           <TableBody>
-            {tableData ? (
+            {loading && (
+              <TableCell align="center" colSpan={7}>
+                <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+                  <CircularProgress />
+                </Box>
+              </TableCell>
+            )}
+            {tableData &&
               tableData
                 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                 .map((row) => (
@@ -182,8 +194,8 @@ export default function BasicTable() {
                     </TableCell>
                     <TableCell align="left">{row.rocket}</TableCell>
                   </TableRow>
-                ))
-            ) : (
+                ))}
+            {errorMessage && (
               <TableRow>
                 <TableCell align="center" colSpan={7}>
                   {errorMessage}
